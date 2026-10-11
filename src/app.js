@@ -50,6 +50,36 @@ app.post('/api/offers',async(req,res)=>{
  }catch(e){res.status(400).json({error:e.message});}
 });
 
+
+app.patch('/api/offers/:id',async(req,res)=>{
+ const {title,festival,discount,description}=req.body||{};
+ if(!title?.trim())return res.status(400).json({error:'Offer title is required.'});
+ try {
+  if(useMongo()){
+   const row=await Offer.findByIdAndUpdate(req.params.id,{title:title.trim(),festival:festival||'General',discount:discount||'',description:description||''},{new:true,runValidators:true});
+   if(!row)return res.status(404).json({error:'Offer not found'});
+   return res.json({offer:toPlain(row),message:'Offer updated.'});
+  }
+  const index=demoOffers.findIndex(x=>x.id===req.params.id);
+  if(index<0)return res.status(404).json({error:'Offer not found'});
+  demoOffers[index]={...demoOffers[index],title:title.trim(),festival:festival||'General',discount:discount||'',description:description||''};
+  return res.json({offer:demoOffers[index],message:'Offer updated.'});
+ }catch(e){res.status(400).json({error:e.message});}
+});
+app.delete('/api/offers/:id',async(req,res)=>{
+ try {
+  if(useMongo()){
+   const row=await Offer.findByIdAndDelete(req.params.id);
+   if(!row)return res.status(404).json({error:'Offer not found'});
+   return res.json({message:'Offer deleted.'});
+  }
+  const index=demoOffers.findIndex(x=>x.id===req.params.id);
+  if(index<0)return res.status(404).json({error:'Offer not found'});
+  demoOffers.splice(index,1);
+  return res.json({message:'Offer deleted.'});
+ }catch(e){res.status(400).json({error:e.message});}
+});
+
 app.get('/api/greetings',async(req,res)=>{
  try {if(useMongo()) return res.json((await Greeting.find({active:true}).sort({createdAt:-1})).map(toPlain));res.json(demoGreetings.filter(x=>x.active));}
  catch(e){res.status(500).json({error:e.message});}
@@ -63,6 +93,36 @@ app.post('/api/greetings',async(req,res)=>{
   else {row={id:id('g'),title:title.trim(),message:message.trim(),occasion:occasion||'Daily Greeting',active:true,createdAt:new Date().toISOString()};demoGreetings.unshift(row);}
   const push=await sendPushToAll({title:`BEST ELECTRICAL · ${row.title}`,body:row.message,data:{type:'greeting',id:row.id}});
   res.status(201).json({greeting:row,push,message:push.registered?`Greeting published. Push notification sent to ${push.sent} device(s).`:'Greeting published. No push devices are registered yet.'});
+ }catch(e){res.status(400).json({error:e.message});}
+});
+
+
+app.patch('/api/greetings/:id',async(req,res)=>{
+ const {title,message,occasion}=req.body||{};
+ if(!title?.trim()||!message?.trim())return res.status(400).json({error:'Greeting title and message are required.'});
+ try {
+  if(useMongo()){
+   const row=await Greeting.findByIdAndUpdate(req.params.id,{title:title.trim(),message:message.trim(),occasion:occasion||'Daily Greeting'},{new:true,runValidators:true});
+   if(!row)return res.status(404).json({error:'Greeting not found'});
+   return res.json({greeting:toPlain(row),message:'Greeting updated.'});
+  }
+  const index=demoGreetings.findIndex(x=>x.id===req.params.id);
+  if(index<0)return res.status(404).json({error:'Greeting not found'});
+  demoGreetings[index]={...demoGreetings[index],title:title.trim(),message:message.trim(),occasion:occasion||'Daily Greeting'};
+  return res.json({greeting:demoGreetings[index],message:'Greeting updated.'});
+ }catch(e){res.status(400).json({error:e.message});}
+});
+app.delete('/api/greetings/:id',async(req,res)=>{
+ try {
+  if(useMongo()){
+   const row=await Greeting.findByIdAndDelete(req.params.id);
+   if(!row)return res.status(404).json({error:'Greeting not found'});
+   return res.json({message:'Greeting deleted.'});
+  }
+  const index=demoGreetings.findIndex(x=>x.id===req.params.id);
+  if(index<0)return res.status(404).json({error:'Greeting not found'});
+  demoGreetings.splice(index,1);
+  return res.json({message:'Greeting deleted.'});
  }catch(e){res.status(400).json({error:e.message});}
 });
 
