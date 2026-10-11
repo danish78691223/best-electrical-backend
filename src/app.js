@@ -11,7 +11,7 @@ import { sendPushToAll } from './services/pushNotifications.js';
 
 const app = express();
 app.use(cors());
-app.use(express.json({limit:'1mb'}));
+app.use(express.json({limit:'2mb'}));
 let nextId = 100;
 const id = p => `${p}${nextId++}`;
 const useMongo = () => mongoReady();
@@ -26,11 +26,11 @@ app.get('/api/products',async(req,res)=>{
  } catch(e){res.status(500).json({error:e.message});}
 });
 app.post('/api/products',async(req,res)=>{
- const {name,category,price,stock,description}=req.body;
+ const {name,category,price,stock,description,image}=req.body;
  if(!name || !Number.isFinite(Number(price))) return res.status(400).json({error:'Product name and valid price are required.'});
  try {
-  if(useMongo()){const row=await Product.create({name,category,price:Number(price),stock:Number(stock||0),description});return res.status(201).json(toPlain(row));}
-  const row={id:id('p'),name,category:category||'Electrical',price:Number(price),stock:Number(stock||0),description:description||''};demoProducts.unshift(row);res.status(201).json(row);
+  if(useMongo()){const row=await Product.create({name,category,price:Number(price),stock:Number(stock||0),description,image:image||''});return res.status(201).json(toPlain(row));}
+  const row={id:id('p'),name,category:category||'Electrical',price:Number(price),stock:Number(stock||0),description:description||'',image:image||''};demoProducts.unshift(row);res.status(201).json(row);
  }catch(e){res.status(400).json({error:e.message});}
 });
 
