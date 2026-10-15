@@ -104,20 +104,23 @@ router.post('/contacts/import', async (req, res) => {
       const old = deduped.get(clean.phone);
       if (!old || (!old.name && clean.name)) deduped.set(clean.phone, clean);
     }
-    let created = 0;
-    let updated = 0;
-    for (const item of deduped.values()) {
-      const existing = await MarketingCustomer.findOne({ phone: item.phone }).select('_id').lean();
-      await MarketingCustomer.findOneAndUpdate(
-        { phone: item.phone },
-        {
-          $set: { name: item.name, source: item.source, lastSyncedAt: new Date() },
+    const now = new Date();
+    const operations = [...deduped.values()].map(item => ({
+      updateOne: {
+        filter: { phone: item.phone },
+        update: {
+          $set: { name: item.name, source: item.source, lastSyncedAt: now },
+          // Import never grants marketing consent. Existing consent fields are preserved.
           $setOnInsert: { smsConsent: false, whatsappConsent: false, doNotContact: false }
         },
-        { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true }
-      );
-      if (existing) updated++; else created++;
-    }
+        upsert: true
+      }
+    }));
+    const result = operations.length
+      ? await MarketingCustomer.bulkWrite(operations, { ordered: false })
+      : { upsertedCount: 0, matchedCount: 0 };
+    const created = result.upsertedCount || 0;
+    const updated = result.matchedCount || 0;
     res.status(201).json({
       totalRows: input.length, validUnique: deduped.size, created, updated, invalid,
       message: 'Contacts imported. Newly imported contacts are NOT opted in to SMS or WhatsApp marketing.'
