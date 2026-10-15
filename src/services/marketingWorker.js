@@ -32,8 +32,7 @@ async function sendOne(recipient, campaign) {
     });
   } catch (error) {
     await MarketingCampaignRecipient.updateOne({ _id: recipient._id }, {
-      $set: { status: 'failed', error: String(error.message || 'Provider send failed').slice(0, 500) },
-      $inc: { attempts: 1 }
+      $set: { status: 'failed', error: String(error.message || 'Provider send failed').slice(0, 500) }
     });
   }
 }
