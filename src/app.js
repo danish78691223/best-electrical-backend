@@ -8,10 +8,13 @@ import Greeting from './models/Greeting.js';
 import PushToken from './models/PushToken.js';
 import { products as demoProducts, offers as demoOffers, reviews as demoReviews, enquiries, greetings as demoGreetings, pushTokens } from './data/demo.js';
 import { sendPushToAll } from './services/pushNotifications.js';
+import marketingAdminRouter from './routes/marketingAdmin.js';
 
 const app = express();
 app.use(cors());
 app.use(express.json({limit:'2mb'}));
+// Protected contact-consent and campaign routes; unlike public shop content these require ADMIN_API_KEY.
+app.use('/api/admin/marketing', marketingAdminRouter);
 let nextId = 100;
 const id = p => `${p}${nextId++}`;
 const useMongo = () => mongoReady();
