@@ -1,6 +1,6 @@
 # BEST ELECTRICAL Marketing Campaigns
 
-This feature runs behind the backend-only `ADMIN_API_KEY`. Configure a random secret with at least 24 characters in the backend host environment; enter it in the admin panel's marketing section. Do not commit the key or put it in a `VITE_*` variable. Contact and campaign endpoints return 503 until the key and MongoDB are configured.
+This feature runs behind the backend-only `ADMIN_API_KEY`. Configure a random secret with at least 24 characters in the backend host environment; enter it in the admin panel's marketing section. Do not commit the key or put it in a `VITE_*` variable. Contact and campaign endpoints return 503 until the key and MongoDB are configured. Live sending is additionally disabled unless `MARKETING_LIVE_SENDING_ENABLED=true`; keep this false until legal/provider setup, opt-out handling and small-number testing are complete.
 
 ## Contact import and consent
 
@@ -36,7 +36,7 @@ The chosen approved template must include one body variable `{{1}}`. The campaig
 - Queue worker delivers in small batches and records provider accepted/failed status.
 - `accepted` means the provider accepted the API request; it is not a proof of final device delivery. Configure provider-specific webhooks before treating status as delivered.
 - Selecting both channels may send two messages to the same customer if they consented to both.
-- Provider secrets remain server-side. Test with a small number of consenting numbers before any large campaign.
+- Provider secrets remain server-side. Test with a small number of consenting numbers before any large campaign. Live queueing is disabled by default; only set `MARKETING_LIVE_SENDING_ENABLED=true` after end-to-end provider checks, required DLT and channel consent setup, and opt-out/suppression handling have been verified.
 
 ## API
 
