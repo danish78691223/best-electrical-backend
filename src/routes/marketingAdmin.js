@@ -216,6 +216,11 @@ router.post('/campaigns', async (req, res) => {
 });
 
 router.post('/campaigns/:id/queue', async (req, res) => {
+  if (process.env.MARKETING_LIVE_SENDING_ENABLED !== 'true') {
+    return res.status(503).json({
+      error: 'Live sending is disabled. Keep campaigns in draft until provider templates, applicable DLT/consent checks, opt-out handling and a small test campaign are complete. Then explicitly set MARKETING_LIVE_SENDING_ENABLED=true on the backend.'
+    });
+  }
   if (!mongoose.isValidObjectId(req.params.id)) return res.status(400).json({ error: 'Invalid campaign id.' });
   try {
     const campaign = await MarketingCampaign.findById(req.params.id);
