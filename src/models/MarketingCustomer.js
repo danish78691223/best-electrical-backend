@@ -22,5 +22,4 @@ const schema = new mongoose.Schema({
   consentHistory: { type: [consentEventSchema], default: [] }
 }, { timestamps: true });
 
-schema.index({ phone: 1 }, { unique: true });
 export default mongoose.models.MarketingCustomer || mongoose.model('MarketingCustomer', schema);
